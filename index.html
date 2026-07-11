@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionPass | AI Facial Attendance System</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js CDN for beautiful dashboard analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons CDN for sleek vector iconography -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="logo-container">
+            <div class="logo-icon">V</div>
+            <span class="logo-text">VisionPass AI</span>
+        </div>
+        
+        <ul class="nav-links">
+            <li class="nav-item active" data-tab="dashboard">
+                <a href="#dashboard">
+                    <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item" data-tab="scanner">
+                <a href="#scanner">
+                    <i data-lucide="scan-face" class="nav-icon"></i>
+                    <span>Face Scanner</span>
+                </a>
+            </li>
+            <li class="nav-item" data-tab="users">
+                <a href="#users">
+                    <i data-lucide="users" class="nav-icon"></i>
+                    <span>User Directory</span>
+                </a>
+            </li>
+            <li class="nav-item" data-tab="logs">
+                <a href="#logs">
+                    <i data-lucide="clipboard-list" class="nav-icon"></i>
+                    <span>Attendance Logs</span>
+                </a>
+            </li>
+            <li class="nav-item" data-tab="settings">
+                <a href="#settings">
+                    <i data-lucide="settings" class="nav-icon"></i>
+                    <span>System Settings</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <p>VisionPass v1.0.0</p>
+            <p>&copy; 2026 Academic Project</p>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        
+        <!-- DASHBOARD PANEL -->
+        <section id="dashboard" class="panel active">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>System Dashboard</h1>
+                    <p>Real-time analytics and attendance statistics for today.</p>
+                </div>
+            </div>
+
+            <!-- Stats grid -->
+            <div class="stats-grid">
+                <div class="card stat-card">
+                    <div class="stat-info">
+                        <h3>Total Registered</h3>
+                        <div class="stat-value" id="stat-total-users">0</div>
+                        <div class="stat-change up">
+                            <i data-lucide="arrow-up-right" style="width: 12px; height: 12px;"></i>
+                            <span>Active directory</span>
+                        </div>
+
+                        <!-- Simple on-page scanner log for diagnostics -->
+                        <div class="card" style="margin-top:1rem; background: #0b1220; color: #cbd5e1;">
+                            <h3 style="font-size:0.95rem; margin-bottom:0.5rem;">Scanner Log</h3>
+                            <div id="scanner-log" style="font-family:monospace; font-size:0.85rem; min-height:48px; padding:0.5rem; background:rgba(0,0,0,0.15); border-radius:6px;">
+                                <!-- populated by app.js -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-icon-wrapper purple">
+                        <i data-lucide="users"></i>
+                    </div>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-info">
+                        <h3>Checked In Today</h3>
+                        <div class="stat-value" id="stat-present">0</div>
+                        <div class="stat-change up" id="stat-present-change">
+                            <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                            <span>On time</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon-wrapper green">
+                        <i data-lucide="user-check"></i>
+                    </div>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-info">
+                        <h3>Late Arrivals</h3>
+                        <div class="stat-value" id="stat-late">0</div>
+                        <div class="stat-change down" id="stat-late-change" style="color: var(--accent-orange);">
+                            <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+                            <span>After grace window</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon-wrapper orange">
+                        <i data-lucide="user-x"></i>
+                    </div>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-info">
+                        <h3>Absent</h3>
+                        <div class="stat-value" id="stat-absent">0</div>
+                        <div class="stat-change down" id="stat-absent-change">
+                            <i data-lucide="alert-circle" style="width: 12px; height: 12px;"></i>
+                            <span>No check-in record</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon-wrapper red" style="background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2);">
+                        <i data-lucide="user-minus"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart and Feed grid -->
+            <div class="dashboard-details">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h2>Weekly Attendance Trend</h2>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Last 7 Days</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card feed-card">
+                    <div class="card-header">
+                        <h2>Live Scan Feed</h2>
+                        <span class="badge-present" id="scan-pulse" style="display: flex; align-items: center; gap: 4px;">
+                            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-green); animation: pulse 1.5s infinite;"></span>
+                            Live
+                        </span>
+                    </div>
+                    <div class="feed-list" id="dashboard-feed-list">
+                        <!-- Feed items loaded dynamically -->
+                        <div style="text-align: center; color: var(--text-muted); margin-top: 4rem;">
+                            No scans recorded today.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCANNER PANEL -->
+        <section id="scanner" class="panel">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Facial Recognition Portal</h1>
+                    <p>Activate the camera scanner to log daily attendance automatically.</p>
+                </div>
+            </div>
+
+            <div class="scanner-grid">
+                <!-- Left: Scanner camera screen -->
+                <div class="card" style="display: flex; flex-direction: column; gap: 1rem; align-items: center; justify-content: center; padding: 2rem;">
+                    <div class="scanner-view-container" id="scanner-view">
+                        <!-- Camera stream (prominent live feed) -->
+                        <video id="webcam-video" class="webcam-stream" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:block;background:#000;"></video>
+                        
+                        <!-- Scanning canvas overlay -->
+                        <canvas id="tracker-canvas" class="scanner-canvas"></canvas>
+                        
+                        <!-- Overlay elements -->
+                        <div class="scanner-overlay-grid"></div>
+                        <div class="scanner-laser-line"></div>
+                        <div class="corner-brackets">
+                            <div class="corner corner-tl"></div>
+                            <div class="corner corner-tr"></div>
+                            <div class="corner corner-bl"></div>
+                            <div class="corner corner-br"></div>
+                        </div>
+                        
+                        <!-- Interactive scanning frame coordinates guide -->
+                        <div class="face-outline-guide" id="face-guide"></div>
+                        <div class="scan-box-anim" id="scan-box"><span class="scan-label-anim" id="scan-label">Analyzing...</span></div>
+
+                        <!-- Status banners inside screen -->
+                        <div class="scanner-status-banner idle visible" id="scanner-banner">
+                            <i data-lucide="camera-off" style="width: 16px; height: 16px;"></i>
+                            <span id="scanner-banner-text">Camera Standby</span>
+                        </div>
+
+                        <!-- Fallback screen if webcam is off -->
+                        <div class="scanner-placeholder-screen" id="scanner-placeholder">
+                            <i data-lucide="video-off" class="scanner-camera-icon"></i>
+                            <p style="text-align: center;">Webcam stream is inactive.<br><span style="font-size: 0.8rem; color: var(--text-muted);">Please click "Start Camera" to initialize scanning.</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Scanner control settings and instruction manual -->
+                <div class="scanner-controls">
+                    <div class="card">
+                        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Scanner Engine Controls</h2>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                            <button id="btn-toggle-camera" class="btn btn-primary">
+                                <i data-lucide="video" class="btn-icon"></i>
+                                <span id="camera-btn-text">Start Camera Scanner</span>
+                            </button>
+                            
+                            <button id="btn-simulate-match" class="btn btn-secondary" disabled>
+                                <i data-lucide="user-check" class="btn-icon"></i>
+                                <span>Simulate Face Match</span>
+                            </button>
+                            <button id="btn-start-simulator" class="btn btn-secondary">
+                                <i data-lucide="cpu" class="btn-icon"></i>
+                                <span>Start Simulator</span>
+                            </button>
+                            <button id="btn-enroll-from-scanner" class="btn btn-secondary" onclick="window.enrollFaceFromScanner && window.enrollFaceFromScanner()">
+                                <i data-lucide="user-plus" class="btn-icon"></i>
+                                <span>Enroll Current Face</span>
+                            </button>
+                            <button id="btn-upload-photo" class="btn btn-secondary" onclick="document.getElementById('scanner-photo-upload').click()">
+                                <i data-lucide="upload-cloud" class="btn-icon"></i>
+                                <span>Upload Reference Photo</span>
+                            </button>
+                            <button id="btn-scan-upload" class="btn btn-secondary" disabled>
+                                <i data-lucide="search" class="btn-icon"></i>
+                                <span>Scan Uploaded Photo</span>
+                            </button>
+                            <input type="file" id="scanner-photo-upload" accept="image/*" style="display:none;">
+                            <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.25rem;">
+                                <div style="flex:1">
+                                    <div style="font-weight:600;">Live Face Match</div>
+                                    <div style="font-size:0.85rem;color:var(--text-muted);">Enable live matching from camera frames</div>
+                                </div>
+                                <label class="switch" style="margin-left:auto;">
+                                    <input type="checkbox" id="setting-live-scan" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="settings-section" style="border: none; padding: 0;">
+                            <div class="switch-wrapper">
+                                <div class="switch-label-wrapper">
+                                    <span class="switch-title">Auto Scan Detection</span>
+                                    <span class="switch-desc">Automatically check-in matches within frame</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="setting-auto-scan" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                    
+                        <div style="margin-top: 1rem; display:flex; gap:0.5rem;">
+                            <button id="btn-start-demo" class="btn btn-secondary" onclick="window.startDemoMode && window.startDemoMode()">
+                                <i data-lucide="play"></i>
+                                <span>Start Demo Mode</span>
+                            </button>
+                        </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Instruction Manual</h2>
+                        <ul class="scanner-instructions">
+                            <li>
+                                <div class="instruction-num">1</div>
+                                <div>Click <strong>"Start Camera"</strong> and grant browser permission to access your webcam.</div>
+                            </li>
+                            <li>
+                                <div class="instruction-num">2</div>
+                                <div>Ensure your face is centered, well-lit, and fits within the circular target grid.</div>
+                            </li>
+                            <li>
+                                <div class="instruction-num">3</div>
+                                <div>The system will run facial detection overlays and search your User Directory for matching landmarks.</div>
+                            </li>
+                            <li>
+                                <div class="instruction-num">4</div>
+                                <div>Once recognized, attendance logs are updated with check-in timestamps automatically.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- USER DIRECTORY PANEL -->
+        <section id="users" class="panel">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>User Directory</h1>
+                    <p>Manage registered members, enroll faces, and assign credentials.</p>
+                </div>
+                <button class="btn btn-primary" id="btn-open-register-modal" onclick="window.openFaceRegistration ? window.openFaceRegistration() : document.getElementById('register-modal').classList.add('active')">
+                    <i data-lucide="user-plus"></i>
+                    <span>Register New Face</span>
+                </button>
+            </div>
+
+            <!-- Search and filters -->
+            <div class="card action-bar">
+                <div class="search-wrapper">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" placeholder="Search by name, ID, or department..." class="search-input" id="user-search">
+                </div>
+                
+                <div class="filters-wrapper">
+                    <select class="select-filter" id="filter-user-dept">
+                        <option value="all">All Departments</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Product">Product</option>
+                        <option value="Design">Design</option>
+                        <option value="HR & Admin">HR & Admin</option>
+                        <option value="Marketing">Marketing</option>
+                    </select>
+
+                    <select class="select-filter" id="filter-user-role">
+                        <option value="all">All Roles</option>
+                        <option value="Staff">Staff</option>
+                        <option value="Student">Student</option>
+                        <option value="Guest">Guest</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Users Grid List -->
+            <div class="users-grid" id="users-grid-container">
+                <!-- Rendered dynamically in app.js -->
+            </div>
+        </section>
+
+        <!-- ATTENDANCE LOGS PANEL -->
+        <section id="logs" class="panel">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Attendance Records</h1>
+                    <p>Review historical records, filter by status, and export files.</p>
+                </div>
+                <button class="btn btn-secondary" id="btn-export-logs">
+                    <i data-lucide="download"></i>
+                    <span>Export to CSV</span>
+                </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="card action-bar">
+                <div class="filters-wrapper" style="width: 100%; flex-wrap: wrap; justify-content: flex-start; gap: 1rem;">
+                    <div class="form-group" style="min-width: 150px;">
+                        <label class="form-label">Search User</label>
+                        <input type="text" placeholder="Search name..." class="search-input" id="log-search-user" style="padding-left: 1rem;">
+                    </div>
+                    
+                    <div class="form-group" style="min-width: 150px;">
+                        <label class="form-label">Filter Date</label>
+                        <input type="date" class="form-input" id="log-filter-date">
+                    </div>
+
+                    <div class="form-group" style="min-width: 150px;">
+                        <label class="form-label">Status</label>
+                        <select class="select-filter" id="log-filter-status" style="width: 100%;">
+                            <option value="all">All Statuses</option>
+                            <option value="Present">Present</option>
+                            <option value="Late">Late</option>
+                            <option value="Absent">Absent</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="min-width: 150px;">
+                        <label class="form-label">Department</label>
+                        <select class="select-filter" id="log-filter-dept" style="width: 100%;">
+                            <option value="all">All Departments</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Product">Product</option>
+                            <option value="Design">Design</option>
+                            <option value="HR & Admin">HR & Admin</option>
+                            <option value="Marketing">Marketing</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-left: auto; align-self: flex-end;">
+                        <button class="btn btn-secondary" id="btn-clear-logs-filters" style="padding: 0.75rem 1.25rem;">
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Table Container -->
+            <div class="card table-card">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>User Profile</th>
+                            <th>ID / Code</th>
+                            <th>Department</th>
+                            <th>Check-in Date</th>
+                            <th>Check-in Time</th>
+                            <th>Attendance Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-table-body">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SYSTEM SETTINGS PANEL -->
+        <section id="settings" class="panel">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>System Configurations</h1>
+                    <p>Customize check-in windows, thresholds, and face tracking engine settings.</p>
+                </div>
+            </div>
+
+            <div class="card" style="display: flex; flex-direction: column; gap: 2rem; max-width: 800px;">
+                <!-- Timing Settings -->
+                <div class="settings-section">
+                    <h2>Attendance Windows</h2>
+                    <p>Define office hours, thresholds for late entry, and check-in eligibility windows.</p>
+                    
+                    <div class="settings-grid">
+                        <div class="form-group">
+                            <label class="form-label">Daily Shift Start Time</label>
+                            <input type="time" class="form-input" id="setting-shift-start" value="09:00">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Late Threshold Time (Grace Period)</label>
+                            <input type="time" class="form-input" id="setting-late-start" value="09:15">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Settings -->
+                <div class="settings-section">
+                    <h2>AI Scanner Configuration</h2>
+                    <p>Modify simulation scan engine latency, threshold sensitivities, and default camera preferences.</p>
+                    
+                    <div class="settings-grid">
+                        <div class="form-group">
+                            <label class="form-label">Simulation Match Latency (seconds)</label>
+                            <input type="number" class="form-input" id="setting-match-latency" min="1" max="10" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Scanning Match Accuracy Target (%)</label>
+                            <input type="number" class="form-input" id="setting-match-accuracy" min="70" max="99" value="94">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Utilities -->
+                <div class="settings-section" style="border: none; padding: 0;">
+                    <h2>System Maintenance</h2>
+                    <p>Clear temporary files, reset employee databases, or load mock templates for presentations.</p>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button class="btn btn-secondary" id="btn-load-demo-data">
+                            <i data-lucide="database"></i>
+                            <span>Load Demo Roster</span>
+                        </button>
+                        <button class="btn btn-secondary" id="btn-clear-database" style="color: var(--accent-red); border-color: rgba(239, 68, 68, 0.2);">
+                            <i data-lucide="trash-2"></i>
+                            <span>Reset System Data</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; justify-content: flex-end;">
+                    <button class="btn btn-primary" id="btn-save-settings">
+                        <i data-lucide="save"></i>
+                        <span>Apply Configurations</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <!-- REGISTER NEW USER MODAL -->
+    <div class="modal-overlay" id="register-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Enroll Facial Profile</h2>
+                <button class="modal-close" id="btn-close-register-modal" onclick="document.getElementById('register-modal').classList.remove('active')">&times;</button>
+            </div>
+            
+            <form id="form-register-user">
+                <div class="modal-body">
+                    <!-- Photo Capture Section -->
+                    <div class="register-camera-section">
+                        <span class="form-label">Facial Snapshot Capture</span>
+                        
+                        <div class="camera-preview-container">
+                            <!-- Stream -->
+                            <video id="register-video" class="camera-preview-stream" autoplay playsinline muted></video>
+                            
+                            <!-- Bounding Target Grid overlay -->
+                            <div class="camera-preview-overlay" id="register-target-overlay"></div>
+                            
+                            <!-- Captured Snapshot -->
+                            <img id="snapshot-preview" class="snapshot-preview-img">
+                        </div>
+
+                        <div class="camera-controls">
+                            <button type="button" class="btn btn-secondary" id="btn-register-start-cam" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                                <i data-lucide="camera" style="width: 14px; height: 14px;"></i> Turn Camera On
+                            </button>
+                            <button type="button" class="btn btn-primary" id="btn-register-snap" style="padding: 0.5rem 1rem; font-size: 0.8rem;" disabled>
+                                <i data-lucide="aperture" style="width: 14px; height: 14px;"></i> Snap Portrait
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="btn-register-upload" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                                <i data-lucide="upload-cloud" style="width: 14px; height: 14px;"></i> Upload Photo
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="btn-register-retake" style="padding: 0.5rem 1rem; font-size: 0.8rem; display: none;">
+                                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Retake
+                            </button>
+                            <input type="file" id="register-photo-upload" accept="image/*" style="display:none;">
+                        </div>
+                    </div>
+
+                    <!-- Input Fields -->
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="reg-name">Full Name</label>
+                            <input type="text" id="reg-name" class="form-input" placeholder="Enter full name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="reg-user-id">ID / Reference Code</label>
+                            <input type="text" id="reg-user-id" class="form-input" placeholder="e.g., EMP-2045" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="reg-department">Department</label>
+                            <select id="reg-department" class="form-input" required>
+                                <option value="" disabled selected>Select Department</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Product">Product</option>
+                                <option value="Design">Design</option>
+                                <option value="HR & Admin">HR & Admin</option>
+                                <option value="Marketing">Marketing</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="reg-role">Role Classification</label>
+                            <select id="reg-role" class="form-input" required>
+                                <option value="" disabled selected>Select Role</option>
+                                <option value="Staff">Staff</option>
+                                <option value="Student">Student</option>
+                                <option value="Guest">Guest</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-register" onclick="document.getElementById('register-modal').classList.remove('active')">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-register">Enroll User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Toasts Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
